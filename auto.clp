@@ -43,8 +43,8 @@
    (not (repair ?))
    =>
    (assert (problem-type
-      (ask-question "What is the problem type (engine/tyres/dent/headlight/brake)? "
-                    engine tyres dent headlight brake))))
+      (ask-question "What is the problem type (engine/tyres/suspension/headlight/brake)? "
+                    engine tyres suspension headlight brake))))
 
 
 ;;;*************************
@@ -316,7 +316,90 @@
 ;;;*******************************************
 
 
+(defrule determine-porpoising-over-bumps ""
+   (problem-type suspension)
+   (not (repair ?))
+   =>
+   (assert (porpoising-over-bumps (yes-or-no-p "Is the vehicle porpoising over bumps or uneven roads (yes/no)? "))))
 
+(defrule determine-suspension-worn-shocks ""
+   (problem-type suspension)
+   (porpoising-over-bumps yes)
+   (not (repair ?))
+   =>
+   (assert (suspension-worn-shocks (yes-or-no-p "Are the shocks worn (yes/no)? "))))
+
+(defrule determine-suspension-pulling-one-side ""
+   (problem-type suspension)
+   (porpoising-over-bumps no)
+   (not (repair ?))
+   =>
+   (assert (suspension-pulling-one-side (yes-or-no-p "Is the vehicle pulling to one side while driving (yes/no)? "))))
+
+(defrule determine-suspension-tyre-inflation ""
+   (problem-type suspension)
+   (porpoising-over-bumps no)
+   (suspension-pulling-one-side yes)
+   (not (repair ?))
+   =>
+   (assert (suspension-tyre-inflation-solved (yes-or-no-p "Check tyre inflation. Is the problem solved (yes/no)? "))))
+
+(defrule determine-crack-rod-steering-rack ""
+   (problem-type suspension)
+   (porpoising-over-bumps no)
+   (suspension-pulling-one-side yes)
+   (suspension-tyre-inflation-solved no)
+   (not (repair ?))
+   =>
+   (assert (crack-rod-steering-rack (yes-or-no-p "Are there cracks in the rod/steering rack (yes/no)? "))))
+
+(defrule determine-flip-flop-wheel ""
+   (problem-type suspension)
+   (porpoising-over-bumps no)
+   (suspension-pulling-one-side no)
+   (not (repair ?))
+   =>
+   (assert (flip-flop-wheel (yes-or-no-p "Is the flip flop wheel shimmy (yes/no)? "))))
+
+(defrule determine-suspension-wheel-balance ""
+   (problem-type suspension)
+   (porpoising-over-bumps no)
+   (suspension-pulling-one-side no)
+   (flip-flop-wheel yes)
+   (not (repair ?))
+   =>
+   (assert (suspension-wheel-balance (yes-or-no-p "Check tyre inflation and wheel balance. Is the problem solved (yes/no)? "))))
+
+
+(defrule determine-clunking-over-bumps ""
+   (problem-type suspension)
+   (porpoising-over-bumps no)
+   (suspension-pulling-one-side no)
+   (flip-flop-wheel no)
+   (not (repair ?))
+   =>
+   (assert (clunking-over-bumps (yes-or-no-p "Is the vehicle clunking over bumps (yes/no)? "))))
+
+(defrule determine-loose-steering ""
+   (problem-type suspension)
+   (porpoising-over-bumps no)
+   (suspension-pulling-one-side no)
+   (flip-flop-wheel no)
+   (clunking-over-bumps no)
+   (not (repair ?))
+   =>
+   (assert (loose-steering (yes-or-no-p "Is the vehicle having loose steering (yes/no)? "))))
+
+(defrule determine-steering-vibrations ""
+   (problem-type suspension)
+   (porpoising-over-bumps no)
+   (suspension-pulling-one-side no)
+   (flip-flop-wheel no)
+   (clunking-over-bumps no)
+   (loose-steering no)
+   (not (repair ?))
+   =>
+   (assert (steering-vibrations (yes-or-no-p "Is the steering vibrating at high speeds (yes/no)? "))))
 
 
 ;;;***************************
@@ -566,13 +649,84 @@
    (not (repair ?))
    =>
    (assert (repair "Replace the pads.")))  
+   
+   
+;;;********************************************
+;;;* REPAIR RULES FOR STEERING AND SUSPENSION *
+;;;********************************************
+
+
+(defrule suspension-worn-shocks-yes ""
+   (problem-type suspension)
+   (suspension-worn-shocks yes)
+   (not (repair ?))
+   =>
+   (assert (repair "Replace shocks."))) 
+
+(defrule suspension-worn-shocks-no ""
+   (problem-type suspension)
+   (suspension-worn-shocks no)
+   (not (repair ?))
+   =>
+   (assert (repair "Replace leaf springs.")))
+
+;;; check tyre  inflation yes suspension wheel balance yes
+
+(defrule suspension-tyre-inflation-solved-yes ""
+   (problem-type suspension)
+   (or (suspension-tyre-inflation-solved yes)
+       (suspension-wheel-balance yes))
+   (not (repair ?))
+   =>
+   (assert (repair "Problem Solved.")))
+
+(defrule crack-rod-steering-rack-yes ""
+   (problem-type suspension)
+   (crack-rod-steering-rack yes)
+   (not (repair ?))
+   =>
+   (assert (repair "Replace rods.")))
+
+(defrule crack-rod-steering-rack-no ""
+   (problem-type suspension)
+   (crack-rod-steering-rack no)
+   (not (repair ?))
+   =>
+   (assert (repair "Replace brake caliper.")))
+
+(defrule suspension-wheel-balance-no ""
+   (problem-type suspension)
+   (suspension-wheel-balance no)
+   (not (repair ?))
+   =>
+   (assert (repair "Inspect tyres and replace them in pairs. Inspect tie rods and repair if needed.")))
+
+(defrule suspension-clunking-over-bumps-yes ""
+   (problem-type suspension)
+   (clunking-over-bumps yes)
+   (not (repair ?))
+   =>
+   (assert (repair "Replace worn shacks, worn bearings and warn ball joints."))) 
+   
+(defrule suspension-loose-steering-yes ""
+   (problem-type suspension)
+   (loose-steering yes)
+   (not (repair ?))
+   =>
+   (assert (repair "Check power steering fluid, worn bearing and broken rack mounts.")))
+   
+(defrule suspension-steering-vibrations-yes ""
+   (problem-type suspension)
+   (steering-vibrations yes)
+   (not (repair ?))
+   =>
+   (assert (repair "Check wheel balance, loose wheel bolts and warped brake rotors."))) 
 
 
 ;;;******************************
 ;;;* REPAIRS NOT MENTIONED      *
 ;;;******************************
    
-
 (defrule no-repairs ""
   (declare (salience -10))
   (not (repair ?))

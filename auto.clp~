@@ -43,8 +43,8 @@
    (not (repair ?))
    =>
    (assert (problem-type
-      (ask-question "What is the problem type (engine/tyres/dent/headlight/brake)? "
-                    engine tyres dent headlight brake))))
+      (ask-question "What is the problem type (engine/tyres/suspension/headlight/brake)? "
+                    engine tyres suspension headlight brake))))
 
 
 ;;;*************************
@@ -319,6 +319,30 @@
 
 
 
+(defrule determine-clunking-over-bumps ""
+   (problem-type suspension)
+   
+   (not (repair ?))
+   =>
+   (assert (clunking-over-bumps (yes-or-no-p "Is the vehicle clunking over bumps (yes/no)? "))))
+
+(defrule determine-loose-steering ""
+   (problem-type suspension)
+   
+   (clunking-over-bumps no)
+   (not (repair ?))
+   =>
+   (assert (loose-steering (yes-or-no-p "Is the vehicle having loose steering (yes/no)? "))))
+
+(defrule determine-steering-vibrations ""
+   (problem-type suspension)
+   
+   (clunking-over-bumps no)
+   (loose-steering no)
+   (not (repair ?))
+   =>
+   (assert (steering-vibrations (yes-or-no-p "Is the steering vibrating at high speeds (yes/no)? "))))
+
 ;;;***************************
 ;;;* REPAIR RULES FOR ENGINE *
 ;;;***************************
@@ -566,6 +590,33 @@
    (not (repair ?))
    =>
    (assert (repair "Replace the pads.")))  
+   
+   
+;;;********************************************
+;;;* REPAIR RULES FOR STEERING AND SUSPENSION *
+;;;********************************************
+
+(defrule suspension-clunking-over-bumps-yes ""
+   (problem-type suspension)
+   (clunking-over-bumps yes)
+   (not (repair ?))
+   =>
+   (assert (repair "Replace worn shacks, worn bearings and warn ball joints."))) 
+   
+(defrule suspension-loose-steering-yes ""
+   (problem-type suspension)
+   (loose-steering yes)
+   (not (repair ?))
+   =>
+   (assert (repair "Check power steering fluid, worn bearing and broken rack mounts.")))
+   
+(defrule suspension-steering-vibrations-yes ""
+   (problem-type suspension)
+   (steering-vibrations yes)
+   (not (repair ?))
+   =>
+   (assert (repair "Check wheel balance, loose wheel bolts and warped brake rotors."))) 
+
 
 
 ;;;******************************
